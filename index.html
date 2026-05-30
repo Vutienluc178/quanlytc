@@ -122,19 +122,57 @@
             
             <!-- Mẫu chi tiêu nhanh -->
             <div class="mb-4">
-                <p class="text-xs text-gray-500 mb-2 font-medium">Ghi nhanh (1-chạm điền Form)</p>
-                <div class="flex gap-2 overflow-x-auto hide-scroll pb-2">
-                    <button onclick="fillQuickExpense(35000, 'nec', 'food', 'Ăn sáng')" class="shrink-0 bg-blue-50 text-blue-700 px-3 py-2 rounded-xl text-xs font-semibold border border-blue-100 flex items-center gap-1 active:scale-95 transition hover:bg-blue-100">
-                        🍜 Ăn sáng 35k
+                <p class="text-xs text-gray-500 mb-2 font-medium">Ghi nhanh 1-chạm (Lưới 3x5)</p>
+                <div class="grid grid-cols-3 gap-2 max-h-[200px] overflow-y-auto hide-scroll pb-2 px-1">
+                    <!-- Hàng 1: Ăn uống cơ bản -->
+                    <button onclick="fillQuickExpense(35000, 'nec', 'food', 'Ăn sáng')" class="bg-white border border-gray-100 shadow-sm rounded-xl p-2 flex flex-col items-center gap-0.5 active:scale-95 transition hover:bg-blue-50">
+                        <span class="text-xl">🍜</span><span class="text-[10px] font-semibold text-gray-700">Ăn sáng</span><span class="text-[9px] text-gray-400">35k</span>
                     </button>
-                    <button onclick="fillQuickExpense(30000, 'play', 'fun', 'Cà phê')" class="shrink-0 bg-pink-50 text-pink-700 px-3 py-2 rounded-xl text-xs font-semibold border border-pink-100 flex items-center gap-1 active:scale-95 transition hover:bg-pink-100">
-                        ☕ Cà phê 30k
+                    <button onclick="fillQuickExpense(40000, 'nec', 'food', 'Ăn trưa')" class="bg-white border border-gray-100 shadow-sm rounded-xl p-2 flex flex-col items-center gap-0.5 active:scale-95 transition hover:bg-blue-50">
+                        <span class="text-xl">🍱</span><span class="text-[10px] font-semibold text-gray-700">Ăn trưa</span><span class="text-[9px] text-gray-400">40k</span>
                     </button>
-                    <button onclick="fillQuickExpense(50000, 'nec', 'other', 'Đổ xăng')" class="shrink-0 bg-blue-50 text-blue-700 px-3 py-2 rounded-xl text-xs font-semibold border border-blue-100 flex items-center gap-1 active:scale-95 transition hover:bg-blue-100">
-                        ⛽ Đổ xăng 50k
+                    <button onclick="fillQuickExpense(50000, 'nec', 'food', 'Ăn tối')" class="bg-white border border-gray-100 shadow-sm rounded-xl p-2 flex flex-col items-center gap-0.5 active:scale-95 transition hover:bg-blue-50">
+                        <span class="text-xl">🍲</span><span class="text-[10px] font-semibold text-gray-700">Ăn tối</span><span class="text-[9px] text-gray-400">50k</span>
                     </button>
-                    <button onclick="fillQuickExpense(200000, 'nec', 'food', 'Đi chợ')" class="shrink-0 bg-blue-50 text-blue-700 px-3 py-2 rounded-xl text-xs font-semibold border border-blue-100 flex items-center gap-1 active:scale-95 transition hover:bg-blue-100">
-                        🛒 Đi chợ 200k
+                    <!-- Hàng 2: Đi lại & Sinh hoạt -->
+                    <button onclick="fillQuickExpense(30000, 'play', 'fun', 'Cà phê')" class="bg-white border border-gray-100 shadow-sm rounded-xl p-2 flex flex-col items-center gap-0.5 active:scale-95 transition hover:bg-pink-50">
+                        <span class="text-xl">☕</span><span class="text-[10px] font-semibold text-gray-700">Cà phê</span><span class="text-[9px] text-gray-400">30k</span>
+                    </button>
+                    <button onclick="fillQuickExpense(60000, 'nec', 'other', 'Đổ xăng')" class="bg-white border border-gray-100 shadow-sm rounded-xl p-2 flex flex-col items-center gap-0.5 active:scale-95 transition hover:bg-blue-50">
+                        <span class="text-xl">⛽</span><span class="text-[10px] font-semibold text-gray-700">Đổ xăng</span><span class="text-[9px] text-gray-400">60k</span>
+                    </button>
+                    <button onclick="fillQuickExpense(200000, 'nec', 'food', 'Đi chợ/Siêu thị')" class="bg-white border border-gray-100 shadow-sm rounded-xl p-2 flex flex-col items-center gap-0.5 active:scale-95 transition hover:bg-blue-50">
+                        <span class="text-xl">🛒</span><span class="text-[10px] font-semibold text-gray-700">Đi chợ</span><span class="text-[9px] text-gray-400">200k</span>
+                    </button>
+                    <!-- Hàng 3: Giải trí & Mua sắm -->
+                    <button onclick="fillQuickExpense(120000, 'play', 'fun', 'Xem phim')" class="bg-white border border-gray-100 shadow-sm rounded-xl p-2 flex flex-col items-center gap-0.5 active:scale-95 transition hover:bg-pink-50">
+                        <span class="text-xl">🎬</span><span class="text-[10px] font-semibold text-gray-700">Xem phim</span><span class="text-[9px] text-gray-400">120k</span>
+                    </button>
+                    <button onclick="fillQuickExpense(300000, 'play', 'shop', 'Mua quần áo')" class="bg-white border border-gray-100 shadow-sm rounded-xl p-2 flex flex-col items-center gap-0.5 active:scale-95 transition hover:bg-pink-50">
+                        <span class="text-xl">👕</span><span class="text-[10px] font-semibold text-gray-700">Quần áo</span><span class="text-[9px] text-gray-400">300k</span>
+                    </button>
+                    <button onclick="fillQuickExpense(80000, 'play', 'other', 'Cắt tóc')" class="bg-white border border-gray-100 shadow-sm rounded-xl p-2 flex flex-col items-center gap-0.5 active:scale-95 transition hover:bg-pink-50">
+                        <span class="text-xl">✂️</span><span class="text-[10px] font-semibold text-gray-700">Cắt tóc</span><span class="text-[9px] text-gray-400">80k</span>
+                    </button>
+                    <!-- Hàng 4: Giáo dục & Đầu tư -->
+                    <button onclick="fillQuickExpense(150000, 'edu', 'edu', 'Mua sách')" class="bg-white border border-gray-100 shadow-sm rounded-xl p-2 flex flex-col items-center gap-0.5 active:scale-95 transition hover:bg-orange-50">
+                        <span class="text-xl">📚</span><span class="text-[10px] font-semibold text-gray-700">Mua sách</span><span class="text-[9px] text-gray-400">150k</span>
+                    </button>
+                    <button onclick="fillQuickExpense(500000, 'edu', 'edu', 'Khóa học')" class="bg-white border border-gray-100 shadow-sm rounded-xl p-2 flex flex-col items-center gap-0.5 active:scale-95 transition hover:bg-orange-50">
+                        <span class="text-xl">💻</span><span class="text-[10px] font-semibold text-gray-700">Khóa học</span><span class="text-[9px] text-gray-400">500k</span>
+                    </button>
+                    <button onclick="fillQuickExpense(1000000, 'ffa', 'invest', 'Đầu tư/Mua Vàng')" class="bg-white border border-gray-100 shadow-sm rounded-xl p-2 flex flex-col items-center gap-0.5 active:scale-95 transition hover:bg-emerald-50">
+                        <span class="text-xl">📈</span><span class="text-[10px] font-semibold text-gray-700">Đầu tư</span><span class="text-[9px] text-gray-400">1m</span>
+                    </button>
+                    <!-- Hàng 5: Tiết kiệm & Cho đi -->
+                    <button onclick="fillQuickExpense(500000, 'ltss', 'other', 'Gửi Tiết Kiệm')" class="bg-white border border-gray-100 shadow-sm rounded-xl p-2 flex flex-col items-center gap-0.5 active:scale-95 transition hover:bg-purple-50">
+                        <span class="text-xl">🐖</span><span class="text-[10px] font-semibold text-gray-700">Tiết kiệm</span><span class="text-[9px] text-gray-400">500k</span>
+                    </button>
+                    <button onclick="fillQuickExpense(200000, 'give', 'other', 'Tặng quà')" class="bg-white border border-gray-100 shadow-sm rounded-xl p-2 flex flex-col items-center gap-0.5 active:scale-95 transition hover:bg-teal-50">
+                        <span class="text-xl">🎁</span><span class="text-[10px] font-semibold text-gray-700">Tặng quà</span><span class="text-[9px] text-gray-400">200k</span>
+                    </button>
+                    <button onclick="fillQuickExpense(500000, 'give', 'other', 'Đám cưới/Hỏi')" class="bg-white border border-gray-100 shadow-sm rounded-xl p-2 flex flex-col items-center gap-0.5 active:scale-95 transition hover:bg-teal-50">
+                        <span class="text-xl">💌</span><span class="text-[10px] font-semibold text-gray-700">Đám cưới</span><span class="text-[9px] text-gray-400">500k</span>
                     </button>
                 </div>
             </div>
@@ -181,12 +219,17 @@
                 <canvas id="cashflowChart" height="200"></canvas>
             </div>
 
-            <div class="bg-blue-50 p-4 rounded-xl border border-blue-100 mb-4 flex gap-3 items-start">
+            <div class="bg-blue-50 p-4 rounded-xl border border-blue-100 mb-6 flex gap-3 items-start">
                 <div class="bg-blue-100 p-2 rounded-full shrink-0"><i data-lucide="bot" class="w-5 h-5 text-blue-600"></i></div>
                 <div>
                     <h3 class="text-sm font-bold text-blue-900 mb-1">AI Chẩn đoán</h3>
                     <p id="ai-advice" class="text-xs text-blue-800 leading-relaxed">Đang phân tích dữ liệu...</p>
                 </div>
+            </div>
+
+            <h3 class="font-bold text-gray-800 mb-3 text-sm flex items-center gap-2"><i data-lucide="list" class="w-4 h-4 text-indigo-500"></i> Lịch sử giao dịch chi tiết</h3>
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 mb-6 max-h-60 overflow-y-auto hide-scroll" id="transaction-list">
+                <!-- Danh sách giao dịch render bằng JS -->
             </div>
 
             <button onclick="exportData()" class="w-full flex items-center justify-center gap-2 bg-gray-100 text-gray-700 font-semibold py-3 rounded-xl hover:bg-gray-200 transition active:scale-95 mb-3">
@@ -555,7 +598,7 @@
 
         if(tabId === 'dashboard') renderJars();
         if(tabId === 'expense') updateOutJarBalance();
-        if(tabId === 'reports') renderChart();
+        if(tabId === 'reports') { renderChart(); renderTransactionList(); }
         if(tabId === 'gamification') renderGamification();
     }
 
@@ -833,6 +876,53 @@
                 scales: { y: { beginAtZero: true, display: false } }
             }
         });
+    }
+
+    function renderTransactionList() {
+        const listEl = qs('#transaction-list');
+        if (!state.transactions || state.transactions.length === 0) {
+            listEl.innerHTML = '<p class="text-xs text-center text-gray-400 p-6">Chưa có giao dịch nào được ghi nhận.</p>';
+            return;
+        }
+
+        // Lấy danh sách copy và xếp theo ID (thời gian mới nhất lên đầu)
+        const sortedTransactions = [...state.transactions].sort((a, b) => b.id - a.id);
+        let html = '';
+        
+        sortedTransactions.forEach(t => {
+            const isOut = t.type === 'out';
+            const sign = isOut ? '-' : '+';
+            const colorClass = isOut ? 'text-rose-600' : 'text-emerald-600';
+            const bgClass = isOut ? 'bg-rose-50' : 'bg-emerald-50';
+            const icon = isOut ? 'arrow-up-right' : 'arrow-down-left';
+            
+            // Format ngày giờ đẹp (VD: 15/08, 14:30)
+            const d = new Date(t.date);
+            const dateStr = `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth()+1).toString().padStart(2, '0')} - ${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
+            
+            // Subtitle chỉ ra Hũ (nếu là chi tiêu) hoặc Nguồn (nếu là thu nhập)
+            let subtitle = isOut && t.jar && JARS_CONFIG[t.jar] ? `Hũ ${JARS_CONFIG[t.jar].name}` : 'Nguồn thu nhập';
+
+            html += `
+                <div class="flex justify-between items-center p-3 border-b border-gray-50 last:border-0 hover:bg-gray-50 transition">
+                    <div class="flex items-center gap-3 overflow-hidden">
+                        <div class="w-8 h-8 rounded-full ${bgClass} flex items-center justify-center shrink-0">
+                            <i data-lucide="${icon}" class="w-4 h-4 ${colorClass}"></i>
+                        </div>
+                        <div class="truncate">
+                            <p class="text-xs font-bold text-gray-800 truncate">${t.desc || 'Giao dịch'}</p>
+                            <p class="text-[10px] text-gray-500">${dateStr} • ${subtitle}</p>
+                        </div>
+                    </div>
+                    <div class="text-right shrink-0 pl-2">
+                        <p class="text-xs font-bold ${colorClass}">${sign}${formatMoney(t.amount)}</p>
+                    </div>
+                </div>
+            `;
+        });
+        
+        listEl.innerHTML = html;
+        lucide.createIcons();
     }
 
     function exportData() {
