@@ -66,6 +66,40 @@
                 <!-- Hũ render bằng JS -->
             </div>
             
+            <button onclick="openTransferModal()" class="mt-5 w-full bg-indigo-50 text-indigo-700 py-3 rounded-xl font-bold flex justify-center items-center gap-2 border border-indigo-100 hover:bg-indigo-100 active:scale-95 transition">
+                <i data-lucide="arrow-right-left" class="w-5 h-5"></i> Mượn / Chuyển tiền nội bộ
+            </button>
+
+            <!-- GHI CHÚ & CÔNG VIỆC -->
+            <div class="mt-8 bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                <div class="flex justify-between items-center mb-3">
+                    <h2 class="text-sm font-bold text-gray-800 flex items-center gap-2"><i data-lucide="list-todo" class="w-4 h-4 text-indigo-500"></i> Ghi chú & Cần làm</h2>
+                    <button onclick="toggleArchivedNotes()" class="text-[10px] text-indigo-600 font-bold bg-indigo-50 px-2 py-1.5 rounded-lg border border-indigo-100 active:scale-95 transition">
+                        Đã xong <span id="archived-count">(0)</span>
+                    </button>
+                </div>
+                
+                <div class="flex gap-2 mb-4">
+                    <input type="text" id="new-note-input" onkeypress="if(event.key === 'Enter') addNote()" class="flex-1 bg-gray-50 border border-gray-100 rounded-lg px-3 py-2 text-sm outline-none focus:border-indigo-400 transition" placeholder="Đồ cần mua, lịch thanh toán...">
+                    <button onclick="addNote()" class="bg-indigo-600 text-white px-3 py-2 rounded-lg shadow-md hover:bg-indigo-700 active:scale-95 transition shrink-0">
+                        <i data-lucide="plus" class="w-4 h-4"></i>
+                    </button>
+                </div>
+
+                <!-- Active Notes -->
+                <div id="active-notes-list" class="space-y-2">
+                    <!-- Rendered by JS -->
+                </div>
+
+                <!-- Archived Notes (Hidden by default) -->
+                <div id="archived-notes-container" class="hidden mt-4 pt-4 border-t border-gray-100">
+                    <p class="text-[10px] text-gray-400 mb-3 font-semibold uppercase tracking-wider">Mục lưu trữ</p>
+                    <div id="archived-notes-list" class="space-y-2 opacity-70">
+                        <!-- Rendered by JS -->
+                    </div>
+                </div>
+            </div>
+
             <div class="mt-8 pb-4 text-center text-xs text-gray-400 font-medium">
                 <p>Bản quyền © Vũ Tiến Lực - 0969068849</p>
             </div>
@@ -407,6 +441,56 @@
             <button onclick="closeGuide()" class="mt-2 w-full bg-indigo-600 text-white font-bold py-3 rounded-xl hover:bg-indigo-700 active:scale-95 transition shrink-0 shadow-lg shadow-indigo-200">Đã Rõ - Bắt Đầu Ngay</button>
         </div>
     </div>
+    
+    <!-- Modal Chuyển/Mượn tiền -->
+    <div id="transfer-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex justify-center items-center p-4">
+        <div class="bg-white rounded-2xl p-5 w-full max-w-md shadow-2xl relative flex flex-col transform transition-all scale-95 opacity-0" id="transfer-box">
+            <button onclick="closeTransferModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-700 bg-gray-100 rounded-full p-1 z-10 transition active:scale-90">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+            <h3 class="text-lg font-bold text-indigo-700 mb-4 text-center border-b border-gray-100 pb-3">Mượn / Trả tiền nội bộ</h3>
+            
+            <div class="space-y-4">
+                <div class="flex items-center gap-2">
+                    <div class="flex-1">
+                        <label class="block text-xs text-gray-500 mb-1">Mượn (rút) từ hũ</label>
+                        <select id="transfer-from" class="w-full bg-gray-50 p-3 rounded-lg text-sm outline-none border border-gray-200 font-semibold text-gray-700">
+                            <option value="nec">Thiết yếu</option>
+                            <option value="ffa">Tự do tài chính</option>
+                            <option value="ltss">Tiết kiệm dài hạn</option>
+                            <option value="edu">Giáo dục</option>
+                            <option value="play">Hưởng thụ</option>
+                            <option value="give">Cho đi</option>
+                        </select>
+                    </div>
+                    <i data-lucide="arrow-right" class="w-5 h-5 text-gray-400 mt-5 shrink-0"></i>
+                    <div class="flex-1">
+                        <label class="block text-xs text-gray-500 mb-1">Đổ (bù) vào hũ</label>
+                        <select id="transfer-to" class="w-full bg-gray-50 p-3 rounded-lg text-sm outline-none border border-gray-200 font-semibold text-gray-700">
+                            <option value="nec">Thiết yếu</option>
+                            <option value="ffa">Tự do tài chính</option>
+                            <option value="ltss">Tiết kiệm dài hạn</option>
+                            <option value="edu">Giáo dục</option>
+                            <option value="play">Hưởng thụ</option>
+                            <option value="give">Cho đi</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs text-gray-500 mb-1">Số tiền (VNĐ)</label>
+                    <input type="text" id="transfer-amount" onblur="formatSmartInput(this)" class="w-full border-b-2 border-indigo-200 focus:border-indigo-600 outline-none py-2 text-2xl font-bold text-gray-800" placeholder="VD: 500k, 1m">
+                </div>
+                
+                <div>
+                    <label class="block text-xs text-gray-500 mb-1">Ghi chú</label>
+                    <input type="text" id="transfer-desc" class="w-full bg-gray-50 rounded-lg p-3 text-sm outline-none" placeholder="Vay tiền tiêu tạm, Trả nợ hũ...">
+                </div>
+
+                <button onclick="saveTransfer()" class="w-full bg-indigo-600 text-white font-bold py-3 rounded-xl shadow-lg hover:bg-indigo-700 transition active:scale-95 mt-2">Thực Hiện</button>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script type="module">
@@ -466,9 +550,11 @@
                 state = docSnap.data();
                 if (!state.missions) state.missions = [];
                 if (!state.gamification) state.gamification = { points: 0, level: 1, streak: 0 };
+                if (!state.notes) state.notes = [];
                 qs('#current-month').innerText = `${state.month}/${state.year}`;
                 updateTotalBudget();
                 renderJars();
+                renderNotes();
                 renderGamification();
             }
             updateSyncStatus('synced');
@@ -497,6 +583,7 @@
             play: { limit: 0, balance: 0 }, give: { limit: 0, balance: 0 }
         },
         transactions: [],
+        notes: [],
         gamification: { points: 0, level: 1, streak: 0 },
         missions: [
             { id: 1, title: 'Ghi chép 5 khoản chi tiêu', target: 5, current: 0, icon: 'edit-3', done: false, xp: 50 },
@@ -554,9 +641,11 @@
                 ];
                 delete state.streak;
             }
+            if (!state.notes) state.notes = [];
         }
         qs('#current-month').innerText = `${state.month}/${state.year}`;
         updateTotalBudget();
+        renderNotes();
     }
     
     async function saveState() {
@@ -708,6 +797,81 @@
         
         // Show success notification & switch to dashboard
         switchTab('dashboard', qs('.nav-btn'));
+    }
+
+    // --- XỬ LÝ MƯỢN / CHUYỂN TIỀN ---
+    let pendingTransfer = null;
+
+    function openTransferModal() {
+        const modal = qs('#transfer-modal');
+        const box = qs('#transfer-box');
+        modal.classList.remove('hidden');
+        qs('#transfer-from').value = 'ffa';
+        qs('#transfer-to').value = 'nec';
+        setTimeout(() => {
+            box.classList.remove('scale-95', 'opacity-0');
+            box.classList.add('scale-100', 'opacity-100');
+        }, 10);
+    }
+
+    function closeTransferModal() {
+        const box = qs('#transfer-box');
+        box.classList.remove('scale-100', 'opacity-100');
+        box.classList.add('scale-95', 'opacity-0');
+        setTimeout(() => { qs('#transfer-modal').classList.add('hidden'); pendingTransfer = null; }, 200);
+    }
+
+    function saveTransfer() {
+        const fromJar = qs('#transfer-from').value;
+        const toJar = qs('#transfer-to').value;
+        const amount = parseSmartAmount(qs('#transfer-amount').value);
+        const desc = qs('#transfer-desc').value || 'Mượn / Trả tiền nội bộ';
+
+        if (!amount || amount <= 0) return alert('Vui lòng nhập số tiền hợp lệ.');
+        if (fromJar === toJar) return alert('Vui lòng chọn 2 hũ khác nhau.');
+
+        if (state.jars[fromJar].balance < amount) {
+            return alert(`Hũ ${JARS_CONFIG[fromJar].name} không đủ ${formatMoney(amount)} để cho mượn!`);
+        }
+
+        // Kỷ luật: Rút từ hũ Tương lai (FFA, LTSS) sang hũ Chi tiêu (NEC, PLAY, GIVE, EDU)
+        const isFutureJar = fromJar === 'ffa' || fromJar === 'ltss';
+        const isSpendingJar = toJar === 'nec' || toJar === 'play' || toJar === 'give' || toJar === 'edu';
+
+        if (isFutureJar && isSpendingJar) {
+            closeTransferModal();
+            setTimeout(() => {
+                showCustomAlert(
+                    'Phá vỡ kỷ luật!', 
+                    `Bạn đang vay mượn từ quỹ <b>${JARS_CONFIG[fromJar].name}</b> để đắp vào <b>${JARS_CONFIG[toJar].name}</b>. Nếu tiếp tục, bạn sẽ bị <b>mất chuỗi kỷ luật (Streak về 0)</b> và bị trừ điểm XP!`,
+                    'alert-triangle', 'text-rose-600', 'bg-rose-100',
+                    () => executeTransferTransaction(fromJar, toJar, amount, desc, true)
+                );
+            }, 300); // Đợi modal chuyển đóng hẳn mới mở cảnh báo
+            return;
+        }
+
+        executeTransferTransaction(fromJar, toJar, amount, desc, false);
+    }
+
+    function executeTransferTransaction(fromJar, toJar, amount, desc, isViolation = false) {
+        state.jars[fromJar].balance -= amount;
+        state.jars[toJar].balance += amount;
+        
+        state.transactions.push({ 
+            id: Date.now(), type: 'transfer', amount, fromJar, toJar, desc, date: new Date().toISOString() 
+        });
+
+        if (isViolation) {
+            state.gamification.streak = 0; // Phạt: Mất chuỗi
+            state.gamification.points = Math.max(0, state.gamification.points - 30); // Phạt: Trừ 30 XP
+        }
+
+        saveState();
+        qs('#transfer-amount').value = ''; qs('#transfer-desc').value = '';
+        closeTransferModal();
+        closeAlert();
+        renderJars(); // Cập nhật lại giao diện
     }
 
     // --- CẬP NHẬT SỐ DƯ KHI CHỌN HŨ CHI TIÊU ---
@@ -890,18 +1054,32 @@
         let html = '';
         
         sortedTransactions.forEach(t => {
+            const isTransfer = t.type === 'transfer';
             const isOut = t.type === 'out';
-            const sign = isOut ? '-' : '+';
-            const colorClass = isOut ? 'text-rose-600' : 'text-emerald-600';
-            const bgClass = isOut ? 'bg-rose-50' : 'bg-emerald-50';
-            const icon = isOut ? 'arrow-up-right' : 'arrow-down-left';
+            
+            let sign = '';
+            let colorClass = '';
+            let bgClass = '';
+            let icon = '';
+            let subtitle = '';
+
+            if (isTransfer) {
+                sign = '🔄 ';
+                colorClass = 'text-blue-600';
+                bgClass = 'bg-blue-50';
+                icon = 'arrow-right-left';
+                subtitle = `${JARS_CONFIG[t.fromJar].name} ➔ ${JARS_CONFIG[t.toJar].name}`;
+            } else {
+                sign = isOut ? '-' : '+';
+                colorClass = isOut ? 'text-rose-600' : 'text-emerald-600';
+                bgClass = isOut ? 'bg-rose-50' : 'bg-emerald-50';
+                icon = isOut ? 'arrow-up-right' : 'arrow-down-left';
+                subtitle = isOut && t.jar && JARS_CONFIG[t.jar] ? `Hũ ${JARS_CONFIG[t.jar].name}` : 'Nguồn thu nhập';
+            }
             
             // Format ngày giờ đẹp (VD: 15/08, 14:30)
             const d = new Date(t.date);
             const dateStr = `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth()+1).toString().padStart(2, '0')} - ${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
-            
-            // Subtitle chỉ ra Hũ (nếu là chi tiêu) hoặc Nguồn (nếu là thu nhập)
-            let subtitle = isOut && t.jar && JARS_CONFIG[t.jar] ? `Hũ ${JARS_CONFIG[t.jar].name}` : 'Nguồn thu nhập';
 
             html += `
                 <div class="flex justify-between items-center p-3 border-b border-gray-50 last:border-0 hover:bg-gray-50 transition">
@@ -1066,6 +1244,87 @@
         setTimeout(() => { qs('#guide-modal').classList.add('hidden'); }, 200);
     }
 
+    // --- GHI CHÚ / CÔNG VIỆC ---
+    function renderNotes() {
+        const activeList = qs('#active-notes-list');
+        const archivedList = qs('#archived-notes-list');
+        const archivedCount = qs('#archived-count');
+        
+        if(!activeList) return;
+
+        activeList.innerHTML = '';
+        archivedList.innerHTML = '';
+        
+        let activeNotes = state.notes.filter(n => !n.done).reverse(); // Mới nhất lên đầu
+        let archivedNotes = state.notes.filter(n => n.done).sort((a,b) => b.id - a.id);
+        
+        archivedCount.innerText = `(${archivedNotes.length})`;
+
+        if (activeNotes.length === 0) {
+            activeList.innerHTML = '<p class="text-xs text-gray-400 text-center py-4 bg-gray-50 rounded-lg border border-dashed border-gray-200">Chưa có công việc nào.</p>';
+        } else {
+            activeNotes.forEach(n => {
+                activeList.innerHTML += `
+                    <div class="flex items-center gap-3 bg-gray-50 p-2.5 rounded-lg border border-gray-100 transition active:scale-[0.98]">
+                        <button onclick="toggleNoteStatus(${n.id})" class="w-5 h-5 rounded-full border-[2px] border-gray-300 flex items-center justify-center shrink-0 hover:border-indigo-500 transition bg-white"></button>
+                        <span class="text-sm text-gray-700 flex-1 font-medium">${n.text}</span>
+                        <button onclick="deleteNote(${n.id})" class="text-gray-300 hover:text-rose-500 transition shrink-0"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                    </div>
+                `;
+            });
+        }
+
+        if (archivedNotes.length === 0) {
+            archivedList.innerHTML = '<p class="text-xs text-gray-400 text-center py-2 italic">Trống.</p>';
+        } else {
+            archivedNotes.forEach(n => {
+                archivedList.innerHTML += `
+                    <div class="flex items-center gap-3 p-2.5 rounded-lg border border-transparent transition">
+                        <button onclick="toggleNoteStatus(${n.id})" class="w-5 h-5 rounded-full bg-emerald-500 border-2 border-emerald-500 flex items-center justify-center shrink-0 shadow-sm">
+                            <i data-lucide="check" class="w-3 h-3 text-white"></i>
+                        </button>
+                        <span class="text-sm text-gray-400 line-through flex-1">${n.text}</span>
+                        <button onclick="deleteNote(${n.id})" class="text-gray-300 hover:text-rose-500 transition shrink-0"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                    </div>
+                `;
+            });
+        }
+
+        lucide.createIcons();
+    }
+
+    function addNote() {
+        const input = qs('#new-note-input');
+        const text = input.value.trim();
+        if (!text) return;
+
+        state.notes.push({ id: Date.now(), text, done: false });
+        saveState();
+        input.value = '';
+        renderNotes();
+    }
+
+    function toggleNoteStatus(id) {
+        const note = state.notes.find(n => n.id === id);
+        if (note) {
+            note.done = !note.done;
+            saveState();
+            renderNotes();
+        }
+    }
+
+    function deleteNote(id) {
+        state.notes = state.notes.filter(n => n.id !== id);
+        saveState();
+        renderNotes();
+    }
+
+    let isArchivedVisible = false;
+    function toggleArchivedNotes() {
+        isArchivedVisible = !isArchivedVisible;
+        qs('#archived-notes-container').classList.toggle('hidden', !isArchivedVisible);
+    }
+
     // --- KHỞI CHẠY ---
     lucide.createIcons();
     loadState();
@@ -1085,11 +1344,18 @@
     window.updateOutJarBalance = updateOutJarBalance;
     window.formatSmartInput = formatSmartInput;
     window.fillQuickExpense = fillQuickExpense;
+    window.openTransferModal = openTransferModal;
+    window.closeTransferModal = closeTransferModal;
+    window.saveTransfer = saveTransfer;
     window.exportData = exportData;
     window.promptResetData = promptResetData;
     window.closeAlert = closeAlert;
     window.openGuide = openGuide;
     window.closeGuide = closeGuide;
+    window.addNote = addNote;
+    window.toggleNoteStatus = toggleNoteStatus;
+    window.deleteNote = deleteNote;
+    window.toggleArchivedNotes = toggleArchivedNotes;
 
 </script>
 </body>
