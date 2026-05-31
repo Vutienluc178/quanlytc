@@ -77,6 +77,10 @@
         <!-- TAB 1: DASHBOARD (6 Hũ) -->
         <div id="tab-dashboard" class="tab-content active">
             <h2 class="text-lg font-semibold text-gray-800 mb-4">Tổng quan 6 Hũ</h2>
+            
+            <!-- Vùng hiển thị thông báo Ngày Giỗ / Âm Lịch (Hiển thị đầu tuần) -->
+            <div id="lunar-alerts-container" class="mb-4"></div>
+
             <div class="grid grid-cols-2 gap-4" id="jars-container">
                 <!-- Hũ render bằng JS -->
             </div>
@@ -548,7 +552,8 @@
                 
                 <div class="mt-4 flex items-center justify-center gap-4 text-[10px] text-gray-500 border-t border-gray-100 pt-3">
                     <div class="flex items-center gap-1"><div class="w-3 h-3 bg-indigo-600 rounded-sm"></div> Hôm nay</div>
-                    <div class="flex items-center gap-1"><div class="w-1.5 h-1.5 bg-rose-500 rounded-full"></div> Có sự kiện</div>
+                    <div class="flex items-center gap-1"><div class="w-1.5 h-1.5 bg-rose-500 rounded-full"></div> Sự kiện 1 lần</div>
+                    <div class="flex items-center gap-1"><div class="w-1.5 h-1.5 bg-orange-500 rounded-full"></div> Lễ/Giỗ Âm lịch</div>
                 </div>
             </div>
 
@@ -559,11 +564,17 @@
                     <h3 class="text-lg font-bold text-indigo-700 flex-1" id="calendar-note-title">Sự kiện ngày...</h3>
                 </div>
 
-                <div class="flex gap-2 mb-4">
-                    <input type="text" id="new-cal-note-input" onkeypress="if(event.key === 'Enter') addCalendarNote()" class="flex-1 bg-gray-50 border border-gray-100 rounded-lg px-3 py-2 text-sm outline-none focus:border-indigo-400 transition" placeholder="Sinh nhật, tiệc tùng, lịch hẹn...">
-                    <button onclick="addCalendarNote()" class="bg-indigo-600 text-white px-3 py-2 rounded-lg shadow-md hover:bg-indigo-700 active:scale-95 transition shrink-0">
-                        Thêm
-                    </button>
+                <div class="mb-4">
+                    <div class="flex gap-2 mb-2">
+                        <input type="text" id="new-cal-note-input" onkeypress="if(event.key === 'Enter') addCalendarNote()" class="flex-1 bg-gray-50 border border-gray-100 rounded-lg px-3 py-2 text-sm outline-none focus:border-indigo-400 transition" placeholder="Sinh nhật, tiệc tùng, lịch hẹn...">
+                        <button onclick="addCalendarNote()" class="bg-indigo-600 text-white px-3 py-2 rounded-lg shadow-md hover:bg-indigo-700 active:scale-95 transition shrink-0">
+                            Thêm
+                        </button>
+                    </div>
+                    <label class="flex items-center gap-2 cursor-pointer mt-2 pl-1 w-max">
+                        <input type="checkbox" id="is-lunar-recurring" class="w-3.5 h-3.5 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500 cursor-pointer">
+                        <span class="text-[11px] font-semibold text-orange-600">Lặp lại Âm lịch hàng năm (Giỗ, Rằm, Lễ...)</span>
+                    </label>
                 </div>
 
                 <div id="calendar-note-list" class="space-y-2 min-h-[150px] max-h-[250px] overflow-y-auto hide-scroll">
@@ -667,6 +678,7 @@
         transactions: [],
         notes: [],
         calendarNotes: {}, // Lưu ghi chú theo ngày: { '2026-05-31': [{id:1, text:'...'}], ... }
+        lunarEvents: [], // Lưu sự kiện lặp lại theo âm lịch: [{id:1, text:'...', day:15, month:4}]
         gamification: { points: 0, level: 1, streak: 0 },
         missions: [
             { id: 1, title: 'Thói quen Ghi chép', target: 5, current: 0, icon: 'edit-3', done: false, xp: 50 },
@@ -754,6 +766,7 @@
             }
             if (!state.notes) state.notes = [];
             if (!state.calendarNotes) state.calendarNotes = {};
+            if (!state.lunarEvents) state.lunarEvents = [];
             if (!state.missions || state.missions.length < 5) {
                 const cm = state.missions || [];
                 state.missions = [
@@ -861,7 +874,89 @@
             `;
             container.innerHTML += html;
         }
+        
+        // Gọi render thông báo ngày giỗ
+        renderLunarAlerts();
+        
         lucide.createIcons();
+    }
+
+    // --- XỬ LÝ THÔNG BÁO NGÀY GIỖ / LỄ ÂM LỊCH TỪ THỨ 2 ---
+    function renderLunarAlerts() {
+        const container = qs('#lunar-alerts-container');
+        if (!container) return;
+        
+        if (!state.lunarEvents || state.lunarEvents.length === 0) {
+            container.innerHTML = '';
+            return;
+        }
+
+        const now = new Date();
+        const currentDayOfWeek = now.getDay(); // 0 (Sun) đến 6 (Sat)
+        // Đưa Thứ 2 về 0, Chủ nhật về 6 để dễ tính toán
+        const daysSinceMonday = currentDayOfWeek === 0 ? 6 : currentDayOfWeek - 1;
+
+        const monday = new Date(now);
+        monday.setDate(now.getDate() - daysSinceMonday);
+        monday.setHours(0,0,0,0);
+        
+        const todayNoTime = new Date(now);
+        todayNoTime.setHours(0,0,0,0);
+
+        let upcomingEvents = [];
+
+        // Quét từ Thứ 2 đến Chủ nhật của tuần hiện tại
+        for (let i = 0; i < 7; i++) {
+            let checkDate = new Date(monday);
+            checkDate.setDate(monday.getDate() + i);
+
+            let lunarParts = getLunarDateParts(checkDate);
+            if (lunarParts) {
+                // Lọc xem có sự kiện nào khớp ngày âm lịch này không
+                let matchedEvents = state.lunarEvents.filter(e => e.day === lunarParts.day && e.month === lunarParts.month);
+
+                matchedEvents.forEach(event => {
+                    // Chỉ thông báo nếu HÔM NAY <= NGÀY DIỄN RA SỰ KIỆN (Báo từ Thứ 2 đến hết ngày sự kiện)
+                    if (todayNoTime.getTime() <= checkDate.getTime()) {
+                        upcomingEvents.push({
+                            text: event.text,
+                            lunarDay: event.day,
+                            lunarMonth: event.month,
+                            daysLeft: Math.round((checkDate.getTime() - todayNoTime.getTime()) / (1000 * 3600 * 24))
+                        });
+                    }
+                });
+            }
+        }
+
+        if (upcomingEvents.length === 0) {
+            container.innerHTML = '';
+            return;
+        }
+
+        let html = '';
+        upcomingEvents.forEach(e => {
+            let timeText = e.daysLeft === 0 ? 'Hôm nay' : `Còn ${e.daysLeft} ngày`;
+            let textColor = e.daysLeft === 0 ? 'text-rose-600' : 'text-gray-600';
+            
+            html += `
+                <div class="bg-gradient-to-r from-pink-50 to-rose-50 border border-pink-200 rounded-xl p-3 mb-3 flex items-center justify-between shadow-sm animate-[fadeIn_0.5s_ease-in-out]">
+                    <div class="flex items-center gap-3">
+                        <span class="text-3xl drop-shadow-sm">🪷</span>
+                        <div>
+                            <p class="text-[10px] font-bold text-rose-800 uppercase tracking-widest mb-0.5">Sắp đến ngày Giỗ / Lễ</p>
+                            <p class="text-sm font-semibold text-gray-800">${e.text} <span class="text-[10px] font-normal text-rose-600 bg-white/50 px-1 py-0.5 rounded ml-1">Âm: ${e.lunarDay}/${e.lunarMonth}</span></p>
+                        </div>
+                    </div>
+                    <div class="bg-white px-2.5 py-1.5 rounded-lg border border-pink-100 shadow-sm text-center shrink-0">
+                        <p class="text-[9px] text-gray-500 font-bold uppercase">Thời gian</p>
+                        <p class="text-xs font-black ${textColor}">${timeText}</p>
+                    </div>
+                </div>
+            `;
+        });
+        
+        container.innerHTML = html;
     }
 
     // --- XỬ LÝ THU NHẬP ---
@@ -1284,6 +1379,7 @@
                     transactions: [],
                     notes: [],
                     calendarNotes: {},
+                    lunarEvents: [],
                     gamification: { points: 0, level: 1, streak: 0 },
                     missions: [
                         { id: 1, title: 'Thói quen Ghi chép', target: 5, current: 0, icon: 'edit-3', done: false, xp: 50 },
@@ -1490,6 +1586,19 @@
     let calYear = new Date().getFullYear();
     let currentSelectedDateStr = ""; // Lưu ngày đang được chọn (VD: 2026-05-31)
 
+    // Hàm tiện ích phân tách ngày âm lịch
+    function getLunarDateParts(dateObj) {
+        try {
+            const formatter = new Intl.DateTimeFormat('vi-VN-u-ca-chinese', { day: 'numeric', month: 'numeric' });
+            let rawStr = formatter.format(dateObj); 
+            let cleanStr = rawStr.replace(/ngày /gi, '').replace(/ tháng /gi, '/');
+            let parts = cleanStr.split('/');
+            return { day: parseInt(parts[0]), month: parseInt(parts[1]) };
+        } catch(e) {
+            return null;
+        }
+    }
+
     function openCalendarModal() {
         const modal = qs('#calendar-modal');
         const box = qs('#calendar-box');
@@ -1545,18 +1654,26 @@
             const dateStr = `${calYear}-${String(calMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
             
             let lunarDayOnly = '--';
-            try {
-                let rawStr = lunarFormatter.format(dateObj); // vd: "15/4"
-                let lunarStr = rawStr.replace(/ngày /gi, '').replace(/ tháng /gi, '/');
-                lunarDayOnly = lunarStr.split('/')[0];
-                if (lunarDayOnly === "1" || d === 1) { lunarDayOnly = lunarStr; } // Hiện tháng vào mùng 1
-            } catch(e) {}
+            let lunarParts = getLunarDateParts(dateObj);
+            
+            if (lunarParts) {
+                lunarDayOnly = lunarParts.day;
+                if (lunarParts.day === 1 || d === 1) { 
+                    lunarDayOnly = `${lunarParts.day}/${lunarParts.month}`; 
+                }
+            }
 
             const isToday = (dateStr === realTodayStr);
             const isWeekend = (dateObj.getDay() === 0 || dateObj.getDay() === 6);
             
-            // Kiểm tra xem có ghi chú trong ngày này không
+            // Kiểm tra xem có ghi chú dương lịch không
             const hasNotes = state.calendarNotes[dateStr] && state.calendarNotes[dateStr].length > 0;
+            
+            // Kiểm tra xem có ngày giỗ/lễ âm lịch không
+            let hasLunarEvent = false;
+            if (lunarParts && state.lunarEvents) {
+                hasLunarEvent = state.lunarEvents.some(e => e.day === lunarParts.day && e.month === lunarParts.month);
+            }
             
             let bgClass = 'bg-white border border-gray-100 hover:bg-gray-50 hover:border-indigo-200 cursor-pointer';
             let dateColor = isWeekend ? 'text-rose-500' : 'text-gray-700';
@@ -1567,18 +1684,25 @@
                 dateColor = 'text-white';
                 lunarColor = 'text-indigo-200';
             }
+            
+            // Render các dấu chấm sự kiện
+            let dotsHtml = '';
+            if (hasNotes) dotsHtml += `<div class="w-1.5 h-1.5 bg-rose-500 rounded-full shadow-sm"></div>`;
+            if (hasLunarEvent) dotsHtml += `<div class="w-1.5 h-1.5 bg-orange-500 rounded-full shadow-sm"></div>`;
 
             calGrid.innerHTML += `
                 <div onclick="openDayNote('${dateStr}', ${d})" class="${bgClass} rounded-lg p-1.5 flex flex-col items-center justify-center min-h-[44px] transition relative active:scale-95">
                     <span class="text-sm font-bold leading-none ${dateColor}">${d}</span>
                     <div class="flex items-center gap-0.5 mt-1">
                         <span class="text-[9px] ${lunarColor} leading-none whitespace-nowrap">${lunarDayOnly}</span>
-                        ${hasNotes ? `<div class="w-1.5 h-1.5 bg-rose-500 rounded-full shadow-sm"></div>` : ''}
+                        ${dotsHtml}
                     </div>
                 </div>
             `;
         }
-        lucide.createIcons();
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
     }
 
     function openDayNote(dateStr, dayNum) {
@@ -1605,47 +1729,102 @@
 
     function renderCalendarNotes() {
         const listEl = qs('#calendar-note-list');
-        const notes = state.calendarNotes[currentSelectedDateStr] || [];
+        const solarNotes = state.calendarNotes[currentSelectedDateStr] || [];
         
-        if (notes.length === 0) {
+        // Tìm các sự kiện âm lịch rơi vào ngày này
+        let matchedLunarEvents = [];
+        const dObj = new Date(currentSelectedDateStr);
+        const lunarParts = getLunarDateParts(dObj);
+        
+        if (lunarParts && state.lunarEvents) {
+            matchedLunarEvents = state.lunarEvents.filter(e => e.day === lunarParts.day && e.month === lunarParts.month);
+        }
+        
+        const totalEvents = solarNotes.length + matchedLunarEvents.length;
+        
+        if (totalEvents === 0) {
             listEl.innerHTML = '<div class="flex flex-col items-center justify-center py-6 opacity-50"><i data-lucide="calendar-off" class="w-8 h-8 mb-2"></i><p class="text-xs">Chưa có sự kiện nào</p></div>';
         } else {
             let html = '';
-            notes.forEach(n => {
+            
+            // Hiển thị sự kiện Âm lịch trước
+            matchedLunarEvents.forEach(n => {
+                html += `
+                    <div class="flex items-center justify-between bg-orange-50 p-3 rounded-xl border border-orange-100">
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="repeat" class="w-3.5 h-3.5 text-orange-500"></i>
+                            <span class="text-sm text-orange-900 font-bold">${n.text} <span class="text-[10px] font-normal text-orange-600">(Âm: ${n.day}/${n.month})</span></span>
+                        </div>
+                        <button onclick="deleteCalendarNote(${n.id}, true)" class="text-gray-400 hover:text-rose-500 transition p-1"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                    </div>
+                `;
+            });
+
+            // Hiển thị sự kiện Dương lịch
+            solarNotes.forEach(n => {
                 html += `
                     <div class="flex items-center justify-between bg-indigo-50/50 p-3 rounded-xl border border-indigo-100">
                         <span class="text-sm text-indigo-900 font-medium">${n.text}</span>
-                        <button onclick="deleteCalendarNote(${n.id})" class="text-gray-400 hover:text-rose-500 transition p-1"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                        <button onclick="deleteCalendarNote(${n.id}, false)" class="text-gray-400 hover:text-rose-500 transition p-1"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
                     </div>
                 `;
             });
             listEl.innerHTML = html;
         }
-        lucide.createIcons();
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
     }
 
     function addCalendarNote() {
         const input = qs('#new-cal-note-input');
+        const isLunarRecurring = qs('#is-lunar-recurring').checked;
         const text = input.value.trim();
         if (!text || !currentSelectedDateStr) return;
 
-        if (!state.calendarNotes[currentSelectedDateStr]) {
-            state.calendarNotes[currentSelectedDateStr] = [];
+        if (isLunarRecurring) {
+            const dObj = new Date(currentSelectedDateStr);
+            const lunarParts = getLunarDateParts(dObj);
+            if (lunarParts) {
+                if (!state.lunarEvents) state.lunarEvents = [];
+                state.lunarEvents.push({ id: Date.now(), text, day: lunarParts.day, month: lunarParts.month });
+            } else {
+                alert("Trình duyệt không hỗ trợ tính năng Âm lịch. Không thể lưu.");
+                return;
+            }
+        } else {
+            if (!state.calendarNotes[currentSelectedDateStr]) {
+                state.calendarNotes[currentSelectedDateStr] = [];
+            }
+            const newId = Date.now();
+            state.calendarNotes[currentSelectedDateStr].push({ id: newId, text });
+            
+            // ĐỒNG BỘ: Đẩy sự kiện Dương lịch sang màn hình Ghi chú chung (Todo List)
+            const dObj = new Date(currentSelectedDateStr);
+            const dateStrShort = `${dObj.getDate().toString().padStart(2, '0')}/${(dObj.getMonth()+1).toString().padStart(2, '0')}`;
+            state.notes.push({ id: newId + 1, text: `🗓️ [${dateStrShort}] ${text}`, done: false });
+            
+            // Cập nhật lại UI danh sách ghi chú ở Dashboard
+            if (typeof renderNotes === 'function') renderNotes();
         }
         
-        state.calendarNotes[currentSelectedDateStr].push({ id: Date.now(), text });
         saveState();
         input.value = '';
+        qs('#is-lunar-recurring').checked = false; // reset checkbox
         renderCalendarNotes();
+        renderCalendar(); // Render lại lưới lịch để hiện dấu chấm đỏ ngay lập tức
     }
 
-    function deleteCalendarNote(id) {
-        if (!state.calendarNotes[currentSelectedDateStr]) return;
-        state.calendarNotes[currentSelectedDateStr] = state.calendarNotes[currentSelectedDateStr].filter(n => n.id !== id);
-        
-        // Dọn dẹp mảng rỗng để tiết kiệm data
-        if (state.calendarNotes[currentSelectedDateStr].length === 0) {
-            delete state.calendarNotes[currentSelectedDateStr];
+    function deleteCalendarNote(id, isLunar = false) {
+        if (isLunar) {
+            state.lunarEvents = state.lunarEvents.filter(n => n.id !== id);
+        } else {
+            if (!state.calendarNotes[currentSelectedDateStr]) return;
+            state.calendarNotes[currentSelectedDateStr] = state.calendarNotes[currentSelectedDateStr].filter(n => n.id !== id);
+            
+            if (state.calendarNotes[currentSelectedDateStr].length === 0) {
+                delete state.calendarNotes[currentSelectedDateStr];
+            }
         }
         
         saveState();
