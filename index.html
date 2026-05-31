@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Quản Lý Tài Chính Cá Nhân</title>
+    <title>6 Jars - Quản Lý Tài Chính</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -18,10 +18,6 @@
         .tab-content { display: none; animation: fadeIn 0.3s ease-in-out; }
         .tab-content.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        
-        /* Loading Screen */
-        #loading-screen { position: fixed; inset: 0; z-index: 100; background: #e5e7eb; display: flex; justify-content: center; align-items: center; transition: opacity 0.5s ease-out; }
-        .vl-logo { font-size: 4rem; font-weight: 900; background: linear-gradient(45deg, #4f46e5, #f43f5e); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: -2px; }
 
         /* Mobile App Shell Simulation */
         body { background-color: #e5e7eb; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
@@ -31,27 +27,46 @@
 </head>
 <body>
 
-<div id="loading-screen">
-    <div class="vl-logo">VL</div>
-</div>
-
 <div id="app-container">
-    <!-- Header -->
-    <header class="bg-indigo-600 text-white p-4 pt-6 pb-4 flex justify-between items-center rounded-b-2xl shadow-md z-10">
-        <div>
-            <h1 class="text-xl font-bold">Tháng <span id="current-month"></span></h1>
-            <p class="text-xs text-indigo-200">Tổng ngân sách: <span id="total-budget" class="font-semibold text-white">0đ</span></p>
+    <!-- Header Mới (Premium Layout) -->
+    <header class="bg-gradient-to-br from-indigo-700 via-indigo-600 to-purple-700 text-white p-5 pt-8 rounded-b-[2rem] shadow-xl z-10 relative overflow-hidden">
+        <!-- Họa tiết nền trang trí -->
+        <div class="absolute top-0 right-0 -mr-8 -mt-8 w-32 h-32 rounded-full bg-white opacity-5"></div>
+        <div class="absolute bottom-0 left-0 -ml-8 -mb-8 w-24 h-24 rounded-full bg-white opacity-10"></div>
+
+        <!-- Hàng 1: Tên App & Nút chức năng -->
+        <div class="flex justify-between items-center mb-6 relative z-10">
+            <div class="flex items-center gap-2.5">
+                <div class="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-md border border-white/30 shadow-sm">
+                    <span class="text-sm font-black tracking-tighter text-white">VL</span>
+                </div>
+                <h1 class="text-lg font-black tracking-widest text-white/90">6 JARS</h1>
+            </div>
+            <div class="flex gap-2.5">
+                <div id="cloud-sync-status" class="bg-white/10 p-2 rounded-full flex items-center justify-center backdrop-blur-md border border-white/20 shadow-sm transition" title="Đồng bộ đám mây">
+                    <i id="cloud-icon" data-lucide="cloud" class="w-4 h-4 text-indigo-100"></i>
+                </div>
+                <div class="bg-white/10 p-2 rounded-full cursor-pointer hover:bg-white/20 active:scale-95 transition backdrop-blur-md border border-white/20 shadow-sm" onclick="openGuide()">
+                    <i data-lucide="info" class="w-4 h-4 text-indigo-50"></i>
+                </div>
+                <div class="bg-white/10 p-2 rounded-full cursor-pointer hover:bg-white/20 active:scale-95 transition backdrop-blur-md border border-white/20 shadow-sm" onclick="openCalendarModal()">
+                    <i data-lucide="calendar-days" class="w-4 h-4 text-indigo-50"></i>
+                </div>
+            </div>
         </div>
-        <div class="flex gap-2">
-            <div id="cloud-sync-status" class="bg-indigo-500 p-2 rounded-full flex items-center justify-center transition" title="Đồng bộ đám mây">
-                <i id="cloud-icon" data-lucide="cloud" class="w-5 h-5 text-indigo-200"></i>
+
+        <!-- Hàng 2: Tổng ngân sách & Thời gian -->
+        <div class="relative z-10 flex justify-between items-end">
+            <div>
+                <p class="text-[10px] text-indigo-200 font-semibold mb-0.5 uppercase tracking-wider opacity-80">Tổng tài sản</p>
+                <h2 id="total-budget" class="text-3xl font-black tracking-tight drop-shadow-sm text-white">0đ</h2>
             </div>
-            <div class="bg-indigo-500 p-2 rounded-full cursor-pointer hover:bg-indigo-400 active:scale-95 transition" onclick="openGuide()">
-                <i data-lucide="info" class="w-5 h-5"></i>
-            </div>
-            <div class="bg-indigo-500 p-2 rounded-full relative">
-                <i data-lucide="bell" class="w-5 h-5"></i>
-                <span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+            <div class="text-right flex flex-col items-end">
+                <div class="bg-black/20 px-2 py-1 rounded-md backdrop-blur-sm border border-white/10 mb-1.5 inline-block">
+                    <p class="text-[10px] font-bold text-indigo-100 uppercase tracking-widest">Tháng <span id="current-month"></span></p>
+                </div>
+                <p id="realtime-clock" class="text-[10px] text-indigo-100 font-medium leading-tight">--:-- • --/--/----</p>
+                <p id="realtime-lunar" class="text-[9px] text-indigo-300 leading-tight mt-0.5 font-medium">Âm: --/--</p>
             </div>
         </div>
     </header>
@@ -168,7 +183,17 @@
                     <button onclick="fillQuickExpense(50000, 'nec', 'food', 'Ăn tối')" class="bg-white border border-gray-100 shadow-sm rounded-xl p-2 flex flex-col items-center gap-0.5 active:scale-95 transition hover:bg-blue-50">
                         <span class="text-xl">🍲</span><span class="text-[10px] font-semibold text-gray-700">Ăn tối</span><span class="text-[9px] text-gray-400">50k</span>
                     </button>
-                    <!-- Hàng 2: Đi lại & Sinh hoạt -->
+                    <!-- Hàng 2: Thể thao (Bóng đá, Pickleball, Cầu lông) -->
+                    <button onclick="fillQuickExpense(100000, 'play', 'fun', 'Bóng đá')" class="bg-white border border-gray-100 shadow-sm rounded-xl p-2 flex flex-col items-center gap-0.5 active:scale-95 transition hover:bg-green-50">
+                        <span class="text-xl">⚽</span><span class="text-[10px] font-semibold text-gray-700">Bóng đá</span><span class="text-[9px] text-gray-400">100k</span>
+                    </button>
+                    <button onclick="fillQuickExpense(100000, 'play', 'fun', 'Pickleball')" class="bg-white border border-gray-100 shadow-sm rounded-xl p-2 flex flex-col items-center gap-0.5 active:scale-95 transition hover:bg-green-50">
+                        <span class="text-xl">🏓</span><span class="text-[10px] font-semibold text-gray-700">Pickleball</span><span class="text-[9px] text-gray-400">100k</span>
+                    </button>
+                    <button onclick="fillQuickExpense(100000, 'play', 'fun', 'Cầu lông')" class="bg-white border border-gray-100 shadow-sm rounded-xl p-2 flex flex-col items-center gap-0.5 active:scale-95 transition hover:bg-green-50">
+                        <span class="text-xl">🏸</span><span class="text-[10px] font-semibold text-gray-700">Cầu lông</span><span class="text-[9px] text-gray-400">100k</span>
+                    </button>
+                    <!-- Hàng 3: Đi lại & Sinh hoạt -->
                     <button onclick="fillQuickExpense(30000, 'play', 'fun', 'Cà phê')" class="bg-white border border-gray-100 shadow-sm rounded-xl p-2 flex flex-col items-center gap-0.5 active:scale-95 transition hover:bg-pink-50">
                         <span class="text-xl">☕</span><span class="text-[10px] font-semibold text-gray-700">Cà phê</span><span class="text-[9px] text-gray-400">30k</span>
                     </button>
@@ -491,6 +516,35 @@
             </div>
         </div>
     </div>
+    
+    <!-- Modal Lịch Tháng (Dương & Âm) -->
+    <div id="calendar-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex justify-center items-center p-4">
+        <div class="bg-white rounded-2xl p-5 w-full max-w-md shadow-2xl relative flex flex-col transform transition-all scale-95 opacity-0" id="calendar-box">
+            <button onclick="closeCalendarModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-700 bg-gray-100 rounded-full p-1 z-10 transition active:scale-90">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+            <h3 class="text-lg font-bold text-indigo-700 mb-4 text-center border-b border-gray-100 pb-3" id="calendar-modal-title">Lịch Tháng</h3>
+            
+            <div class="grid grid-cols-7 gap-1 mb-2 text-center">
+                <div class="text-[10px] font-bold text-rose-500">CN</div>
+                <div class="text-[10px] font-bold text-gray-500">T2</div>
+                <div class="text-[10px] font-bold text-gray-500">T3</div>
+                <div class="text-[10px] font-bold text-gray-500">T4</div>
+                <div class="text-[10px] font-bold text-gray-500">T5</div>
+                <div class="text-[10px] font-bold text-gray-500">T6</div>
+                <div class="text-[10px] font-bold text-blue-500">T7</div>
+            </div>
+            
+            <div id="calendar-grid" class="grid grid-cols-7 gap-1 text-center">
+                <!-- Rendered by JS -->
+            </div>
+            
+            <div class="mt-4 flex items-center justify-center gap-4 text-[10px] text-gray-500 border-t border-gray-100 pt-3">
+                <div class="flex items-center gap-1"><div class="w-3 h-3 bg-indigo-600 rounded-sm"></div> Hôm nay</div>
+                <div class="flex items-center gap-1"><div class="text-gray-400 font-bold">số nhỏ</div> Ngày âm lịch</div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script type="module">
@@ -600,6 +654,35 @@
     const formatMoney = (amount) => new Intl.NumberFormat('vi-VN').format(amount) + 'đ';
     const qs = (sel) => document.querySelector(sel);
     
+    // --- ĐỒNG HỒ & ÂM LỊCH ---
+    function updateRealTime() {
+        const now = new Date();
+        const days = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
+        
+        const d = now.getDate().toString().padStart(2, '0');
+        const m = (now.getMonth() + 1).toString().padStart(2, '0');
+        const y = now.getFullYear();
+        const hh = now.getHours().toString().padStart(2, '0');
+        const mm = now.getMinutes().toString().padStart(2, '0');
+        
+        const clockEl = qs('#realtime-clock');
+        if (clockEl) clockEl.innerText = `${hh}:${mm} • ${days[now.getDay()]}, ${d}/${m}/${y}`;
+        
+        try {
+            // Sử dụng Intl API để tính toán âm lịch tự động (rất nhẹ, không cần thư viện bên ngoài)
+            const formatter = new Intl.DateTimeFormat('vi-VN-u-ca-chinese', { day: 'numeric', month: 'numeric' });
+            let lunarStr = formatter.format(now);
+            // Format gọn lại nếu trình duyệt trả về chuỗi dài (vd: "ngày 15 tháng 4" -> "15/4")
+            lunarStr = lunarStr.replace(/ngày /gi, '').replace(/ tháng /gi, '/');
+            
+            const lunarEl = qs('#realtime-lunar');
+            if (lunarEl) lunarEl.innerText = `Âm lịch: ${lunarStr}`;
+        } catch(e) {
+            // Ẩn đi nếu trình duyệt không hỗ trợ lịch âm
+            qs('#realtime-lunar').style.display = 'none';
+        }
+    }
+
     // --- NHẬP SỐ TIỀN THÔNG MINH ---
     function parseSmartAmount(val) {
         if (!val) return 0;
@@ -1372,16 +1455,90 @@
         qs('#archived-notes-container').classList.toggle('hidden', !isArchivedVisible);
     }
 
+    // --- LỊCH THÁNG (DƯƠNG & ÂM) ---
+    function openCalendarModal() {
+        const modal = qs('#calendar-modal');
+        const box = qs('#calendar-box');
+        renderCalendar();
+        modal.classList.remove('hidden');
+        setTimeout(() => {
+            box.classList.remove('scale-95', 'opacity-0');
+            box.classList.add('scale-100', 'opacity-100');
+        }, 10);
+    }
+
+    function closeCalendarModal() {
+        const box = qs('#calendar-box');
+        box.classList.remove('scale-100', 'opacity-100');
+        box.classList.add('scale-95', 'opacity-0');
+        setTimeout(() => { qs('#calendar-modal').classList.add('hidden'); }, 200);
+    }
+
+    function renderCalendar() {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = now.getMonth();
+        const today = now.getDate();
+
+        qs('#calendar-modal-title').innerText = `Tháng ${month + 1} / ${year}`;
+        const calGrid = qs('#calendar-grid');
+        calGrid.innerHTML = '';
+
+        // Tính ngày đầu tiên của tháng rơi vào thứ mấy (0: CN, 6: T7)
+        const firstDay = new Date(year, month, 1).getDay();
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+        // Điền khoảng trống cho các ngày đầu tháng
+        for (let i = 0; i < firstDay; i++) {
+            calGrid.innerHTML += `<div></div>`;
+        }
+
+        const lunarFormatter = new Intl.DateTimeFormat('vi-VN-u-ca-chinese', { day: 'numeric', month: 'numeric' });
+
+        for (let d = 1; d <= daysInMonth; d++) {
+            const dateObj = new Date(year, month, d);
+            let lunarStr = '';
+            let lunarDayOnly = '';
+            
+            try {
+                let rawStr = lunarFormatter.format(dateObj); // vd: "15/4" hoặc "ngày 15 tháng 4"
+                lunarStr = rawStr.replace(/ngày /gi, '').replace(/ tháng /gi, '/');
+                lunarDayOnly = lunarStr.split('/')[0];
+                if (lunarDayOnly === "1" || d === 1) { // Mùng 1 âm hoặc ngày đầu tháng dương thì hiện cả tháng âm
+                    lunarDayOnly = lunarStr;
+                }
+            } catch(e) { lunarDayOnly = '--'; }
+
+            const isToday = (d === today);
+            const isWeekend = (dateObj.getDay() === 0 || dateObj.getDay() === 6);
+            
+            let bgClass = 'bg-white border border-gray-100 hover:bg-gray-50';
+            let dateColor = isWeekend ? 'text-rose-500' : 'text-gray-700';
+            let lunarColor = 'text-gray-400';
+
+            if (isToday) {
+                bgClass = 'bg-indigo-600 shadow-md';
+                dateColor = 'text-white';
+                lunarColor = 'text-indigo-200';
+            }
+
+            calGrid.innerHTML += `
+                <div class="${bgClass} rounded-lg p-1.5 flex flex-col items-center justify-center min-h-[44px] transition cursor-default">
+                    <span class="text-sm font-bold leading-none ${dateColor}">${d}</span>
+                    <span class="text-[9px] ${lunarColor} leading-none mt-1.5 whitespace-nowrap scale-90">${lunarDayOnly}</span>
+                </div>
+            `;
+        }
+    }
+
     // --- KHỞI CHẠY ---
     lucide.createIcons();
     loadState();
     renderJars(); // Load dashboard mặc định
     
-    // Tắt loading screen sau 1.5s
-    setTimeout(() => {
-        qs('#loading-screen').style.opacity = '0';
-        setTimeout(() => qs('#loading-screen').remove(), 500);
-    }, 1500);
+    // Khởi chạy đồng hồ thời gian thực
+    updateRealTime();
+    setInterval(updateRealTime, 1000);
 
     // Export functions to global scope (window) để HTML gọi được từ DOM (Do đã đổi sang type="module")
     window.switchTab = switchTab;
@@ -1403,6 +1560,8 @@
     window.toggleNoteStatus = toggleNoteStatus;
     window.deleteNote = deleteNote;
     window.toggleArchivedNotes = toggleArchivedNotes;
+    window.openCalendarModal = openCalendarModal;
+    window.closeCalendarModal = closeCalendarModal;
 
 </script>
 </body>
