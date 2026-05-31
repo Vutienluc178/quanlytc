@@ -523,25 +523,52 @@
             <button onclick="closeCalendarModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-700 bg-gray-100 rounded-full p-1 z-10 transition active:scale-90">
                 <i data-lucide="x" class="w-5 h-5"></i>
             </button>
-            <h3 class="text-lg font-bold text-indigo-700 mb-4 text-center border-b border-gray-100 pb-3" id="calendar-modal-title">Lịch Tháng</h3>
             
-            <div class="grid grid-cols-7 gap-1 mb-2 text-center">
-                <div class="text-[10px] font-bold text-rose-500">CN</div>
-                <div class="text-[10px] font-bold text-gray-500">T2</div>
-                <div class="text-[10px] font-bold text-gray-500">T3</div>
-                <div class="text-[10px] font-bold text-gray-500">T4</div>
-                <div class="text-[10px] font-bold text-gray-500">T5</div>
-                <div class="text-[10px] font-bold text-gray-500">T6</div>
-                <div class="text-[10px] font-bold text-blue-500">T7</div>
+            <!-- Chế độ xem Lịch -->
+            <div id="calendar-view-mode">
+                <div class="flex justify-between items-center mb-4 border-b border-gray-100 pb-3 pr-8">
+                    <button onclick="changeCalendarMonth(-1)" class="p-1 bg-gray-50 rounded-lg hover:bg-gray-100 transition active:scale-90"><i data-lucide="chevron-left" class="w-5 h-5 text-gray-600"></i></button>
+                    <h3 class="text-lg font-bold text-indigo-700 text-center" id="calendar-modal-title">Lịch Tháng</h3>
+                    <button onclick="changeCalendarMonth(1)" class="p-1 bg-gray-50 rounded-lg hover:bg-gray-100 transition active:scale-90"><i data-lucide="chevron-right" class="w-5 h-5 text-gray-600"></i></button>
+                </div>
+                
+                <div class="grid grid-cols-7 gap-1 mb-2 text-center">
+                    <div class="text-[10px] font-bold text-rose-500">CN</div>
+                    <div class="text-[10px] font-bold text-gray-500">T2</div>
+                    <div class="text-[10px] font-bold text-gray-500">T3</div>
+                    <div class="text-[10px] font-bold text-gray-500">T4</div>
+                    <div class="text-[10px] font-bold text-gray-500">T5</div>
+                    <div class="text-[10px] font-bold text-gray-500">T6</div>
+                    <div class="text-[10px] font-bold text-blue-500">T7</div>
+                </div>
+                
+                <div id="calendar-grid" class="grid grid-cols-7 gap-1 text-center">
+                    <!-- Rendered by JS -->
+                </div>
+                
+                <div class="mt-4 flex items-center justify-center gap-4 text-[10px] text-gray-500 border-t border-gray-100 pt-3">
+                    <div class="flex items-center gap-1"><div class="w-3 h-3 bg-indigo-600 rounded-sm"></div> Hôm nay</div>
+                    <div class="flex items-center gap-1"><div class="w-1.5 h-1.5 bg-rose-500 rounded-full"></div> Có sự kiện</div>
+                </div>
             </div>
-            
-            <div id="calendar-grid" class="grid grid-cols-7 gap-1 text-center">
-                <!-- Rendered by JS -->
-            </div>
-            
-            <div class="mt-4 flex items-center justify-center gap-4 text-[10px] text-gray-500 border-t border-gray-100 pt-3">
-                <div class="flex items-center gap-1"><div class="w-3 h-3 bg-indigo-600 rounded-sm"></div> Hôm nay</div>
-                <div class="flex items-center gap-1"><div class="text-gray-400 font-bold">số nhỏ</div> Ngày âm lịch</div>
+
+            <!-- Chế độ xem Ghi chú ngày -->
+            <div id="calendar-note-mode" class="hidden">
+                <div class="flex items-center gap-3 mb-4 border-b border-gray-100 pb-3">
+                    <button onclick="backToCalendarGrid()" class="p-1 bg-gray-50 rounded-lg hover:bg-gray-100 transition active:scale-90"><i data-lucide="arrow-left" class="w-5 h-5 text-gray-600"></i></button>
+                    <h3 class="text-lg font-bold text-indigo-700 flex-1" id="calendar-note-title">Sự kiện ngày...</h3>
+                </div>
+
+                <div class="flex gap-2 mb-4">
+                    <input type="text" id="new-cal-note-input" onkeypress="if(event.key === 'Enter') addCalendarNote()" class="flex-1 bg-gray-50 border border-gray-100 rounded-lg px-3 py-2 text-sm outline-none focus:border-indigo-400 transition" placeholder="Sinh nhật, tiệc tùng, lịch hẹn...">
+                    <button onclick="addCalendarNote()" class="bg-indigo-600 text-white px-3 py-2 rounded-lg shadow-md hover:bg-indigo-700 active:scale-95 transition shrink-0">
+                        Thêm
+                    </button>
+                </div>
+
+                <div id="calendar-note-list" class="space-y-2 min-h-[150px] max-h-[250px] overflow-y-auto hide-scroll">
+                    <!-- Rendered by JS -->
+                </div>
             </div>
         </div>
     </div>
@@ -605,6 +632,7 @@
                 if (!state.missions) state.missions = [];
                 if (!state.gamification) state.gamification = { points: 0, level: 1, streak: 0 };
                 if (!state.notes) state.notes = [];
+                if (!state.calendarNotes) state.calendarNotes = {};
                 qs('#current-month').innerText = `${state.month}/${state.year}`;
                 updateTotalBudget();
                 renderJars();
@@ -638,6 +666,7 @@
         },
         transactions: [],
         notes: [],
+        calendarNotes: {}, // Lưu ghi chú theo ngày: { '2026-05-31': [{id:1, text:'...'}], ... }
         gamification: { points: 0, level: 1, streak: 0 },
         missions: [
             { id: 1, title: 'Thói quen Ghi chép', target: 5, current: 0, icon: 'edit-3', done: false, xp: 50 },
@@ -718,13 +747,13 @@
         const saved = localStorage.getItem('6jars_data');
         if (saved) {
             state = JSON.parse(saved);
-            // Migrate dữ liệu cũ sang hệ thống Gamification mới
+            // Migrate dữ liệu cũ
             if (state.streak !== undefined) {
                 state.gamification = { points: state.streak * 10, level: Math.max(1, Math.floor((state.streak * 10) / 100) + 1), streak: state.streak };
                 delete state.streak;
             }
             if (!state.notes) state.notes = [];
-            // Cập nhật lại danh sách nhiệm vụ mới nếu đang dùng bản cũ
+            if (!state.calendarNotes) state.calendarNotes = {};
             if (!state.missions || state.missions.length < 5) {
                 const cm = state.missions || [];
                 state.missions = [
@@ -1254,6 +1283,7 @@
                     },
                     transactions: [],
                     notes: [],
+                    calendarNotes: {},
                     gamification: { points: 0, level: 1, streak: 0 },
                     missions: [
                         { id: 1, title: 'Thói quen Ghi chép', target: 5, current: 0, icon: 'edit-3', done: false, xp: 50 },
@@ -1455,11 +1485,20 @@
         qs('#archived-notes-container').classList.toggle('hidden', !isArchivedVisible);
     }
 
-    // --- LỊCH THÁNG (DƯƠNG & ÂM) ---
+    // --- LỊCH THÁNG (DƯƠNG & ÂM) & SỰ KIỆN ---
+    let calMonth = new Date().getMonth();
+    let calYear = new Date().getFullYear();
+    let currentSelectedDateStr = ""; // Lưu ngày đang được chọn (VD: 2026-05-31)
+
     function openCalendarModal() {
         const modal = qs('#calendar-modal');
         const box = qs('#calendar-box');
-        renderCalendar();
+        
+        // Reset về tháng hiện tại khi mở
+        calMonth = new Date().getMonth();
+        calYear = new Date().getFullYear();
+        backToCalendarGrid(); // Đảm bảo đang ở view Lịch
+        
         modal.classList.remove('hidden');
         setTimeout(() => {
             box.classList.remove('scale-95', 'opacity-0');
@@ -1474,19 +1513,25 @@
         setTimeout(() => { qs('#calendar-modal').classList.add('hidden'); }, 200);
     }
 
-    function renderCalendar() {
-        const now = new Date();
-        const year = now.getFullYear();
-        const month = now.getMonth();
-        const today = now.getDate();
+    function changeCalendarMonth(offset) {
+        calMonth += offset;
+        if (calMonth > 11) { calMonth = 0; calYear++; }
+        if (calMonth < 0) { calMonth = 11; calYear--; }
+        renderCalendar();
+    }
 
-        qs('#calendar-modal-title').innerText = `Tháng ${month + 1} / ${year}`;
+    function renderCalendar() {
+        qs('#calendar-modal-title').innerText = `Tháng ${calMonth + 1} / ${calYear}`;
         const calGrid = qs('#calendar-grid');
         calGrid.innerHTML = '';
 
+        // Ngày hiện tại ngoài đời thực để bôi đậm
+        const realNow = new Date();
+        const realTodayStr = `${realNow.getFullYear()}-${String(realNow.getMonth() + 1).padStart(2, '0')}-${String(realNow.getDate()).padStart(2, '0')}`;
+
         // Tính ngày đầu tiên của tháng rơi vào thứ mấy (0: CN, 6: T7)
-        const firstDay = new Date(year, month, 1).getDay();
-        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        const firstDay = new Date(calYear, calMonth, 1).getDay();
+        const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
 
         // Điền khoảng trống cho các ngày đầu tháng
         for (let i = 0; i < firstDay; i++) {
@@ -1496,39 +1541,115 @@
         const lunarFormatter = new Intl.DateTimeFormat('vi-VN-u-ca-chinese', { day: 'numeric', month: 'numeric' });
 
         for (let d = 1; d <= daysInMonth; d++) {
-            const dateObj = new Date(year, month, d);
-            let lunarStr = '';
-            let lunarDayOnly = '';
+            const dateObj = new Date(calYear, calMonth, d);
+            const dateStr = `${calYear}-${String(calMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
             
+            let lunarDayOnly = '--';
             try {
-                let rawStr = lunarFormatter.format(dateObj); // vd: "15/4" hoặc "ngày 15 tháng 4"
-                lunarStr = rawStr.replace(/ngày /gi, '').replace(/ tháng /gi, '/');
+                let rawStr = lunarFormatter.format(dateObj); // vd: "15/4"
+                let lunarStr = rawStr.replace(/ngày /gi, '').replace(/ tháng /gi, '/');
                 lunarDayOnly = lunarStr.split('/')[0];
-                if (lunarDayOnly === "1" || d === 1) { // Mùng 1 âm hoặc ngày đầu tháng dương thì hiện cả tháng âm
-                    lunarDayOnly = lunarStr;
-                }
-            } catch(e) { lunarDayOnly = '--'; }
+                if (lunarDayOnly === "1" || d === 1) { lunarDayOnly = lunarStr; } // Hiện tháng vào mùng 1
+            } catch(e) {}
 
-            const isToday = (d === today);
+            const isToday = (dateStr === realTodayStr);
             const isWeekend = (dateObj.getDay() === 0 || dateObj.getDay() === 6);
             
-            let bgClass = 'bg-white border border-gray-100 hover:bg-gray-50';
+            // Kiểm tra xem có ghi chú trong ngày này không
+            const hasNotes = state.calendarNotes[dateStr] && state.calendarNotes[dateStr].length > 0;
+            
+            let bgClass = 'bg-white border border-gray-100 hover:bg-gray-50 hover:border-indigo-200 cursor-pointer';
             let dateColor = isWeekend ? 'text-rose-500' : 'text-gray-700';
             let lunarColor = 'text-gray-400';
 
             if (isToday) {
-                bgClass = 'bg-indigo-600 shadow-md';
+                bgClass = 'bg-indigo-600 shadow-md cursor-pointer hover:bg-indigo-700 border-transparent';
                 dateColor = 'text-white';
                 lunarColor = 'text-indigo-200';
             }
 
             calGrid.innerHTML += `
-                <div class="${bgClass} rounded-lg p-1.5 flex flex-col items-center justify-center min-h-[44px] transition cursor-default">
+                <div onclick="openDayNote('${dateStr}', ${d})" class="${bgClass} rounded-lg p-1.5 flex flex-col items-center justify-center min-h-[44px] transition relative active:scale-95">
                     <span class="text-sm font-bold leading-none ${dateColor}">${d}</span>
-                    <span class="text-[9px] ${lunarColor} leading-none mt-1.5 whitespace-nowrap scale-90">${lunarDayOnly}</span>
+                    <div class="flex items-center gap-0.5 mt-1">
+                        <span class="text-[9px] ${lunarColor} leading-none whitespace-nowrap">${lunarDayOnly}</span>
+                        ${hasNotes ? `<div class="w-1.5 h-1.5 bg-rose-500 rounded-full shadow-sm"></div>` : ''}
+                    </div>
                 </div>
             `;
         }
+        lucide.createIcons();
+    }
+
+    function openDayNote(dateStr, dayNum) {
+        currentSelectedDateStr = dateStr;
+        
+        // Chuyển view
+        qs('#calendar-view-mode').classList.add('hidden');
+        qs('#calendar-note-mode').classList.remove('hidden');
+        
+        // Format tiêu đề ngày
+        const dObj = new Date(dateStr);
+        const days = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
+        qs('#calendar-note-title').innerText = `${days[dObj.getDay()]}, Ngày ${dayNum}`;
+        
+        renderCalendarNotes();
+    }
+
+    function backToCalendarGrid() {
+        qs('#calendar-note-mode').classList.add('hidden');
+        qs('#calendar-view-mode').classList.remove('hidden');
+        currentSelectedDateStr = "";
+        renderCalendar(); // Render lại để cập nhật chấm đỏ nếu có thay đổi
+    }
+
+    function renderCalendarNotes() {
+        const listEl = qs('#calendar-note-list');
+        const notes = state.calendarNotes[currentSelectedDateStr] || [];
+        
+        if (notes.length === 0) {
+            listEl.innerHTML = '<div class="flex flex-col items-center justify-center py-6 opacity-50"><i data-lucide="calendar-off" class="w-8 h-8 mb-2"></i><p class="text-xs">Chưa có sự kiện nào</p></div>';
+        } else {
+            let html = '';
+            notes.forEach(n => {
+                html += `
+                    <div class="flex items-center justify-between bg-indigo-50/50 p-3 rounded-xl border border-indigo-100">
+                        <span class="text-sm text-indigo-900 font-medium">${n.text}</span>
+                        <button onclick="deleteCalendarNote(${n.id})" class="text-gray-400 hover:text-rose-500 transition p-1"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                    </div>
+                `;
+            });
+            listEl.innerHTML = html;
+        }
+        lucide.createIcons();
+    }
+
+    function addCalendarNote() {
+        const input = qs('#new-cal-note-input');
+        const text = input.value.trim();
+        if (!text || !currentSelectedDateStr) return;
+
+        if (!state.calendarNotes[currentSelectedDateStr]) {
+            state.calendarNotes[currentSelectedDateStr] = [];
+        }
+        
+        state.calendarNotes[currentSelectedDateStr].push({ id: Date.now(), text });
+        saveState();
+        input.value = '';
+        renderCalendarNotes();
+    }
+
+    function deleteCalendarNote(id) {
+        if (!state.calendarNotes[currentSelectedDateStr]) return;
+        state.calendarNotes[currentSelectedDateStr] = state.calendarNotes[currentSelectedDateStr].filter(n => n.id !== id);
+        
+        // Dọn dẹp mảng rỗng để tiết kiệm data
+        if (state.calendarNotes[currentSelectedDateStr].length === 0) {
+            delete state.calendarNotes[currentSelectedDateStr];
+        }
+        
+        saveState();
+        renderCalendarNotes();
     }
 
     // --- KHỞI CHẠY ---
@@ -1562,6 +1683,11 @@
     window.toggleArchivedNotes = toggleArchivedNotes;
     window.openCalendarModal = openCalendarModal;
     window.closeCalendarModal = closeCalendarModal;
+    window.changeCalendarMonth = changeCalendarMonth;
+    window.openDayNote = openDayNote;
+    window.backToCalendarGrid = backToCalendarGrid;
+    window.addCalendarNote = addCalendarNote;
+    window.deleteCalendarNote = deleteCalendarNote;
 
 </script>
 </body>
