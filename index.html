@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>6 Jars - Quản Lý Tài Chính</title>
+    <title>Quản Lý Tài Chính Cá Nhân</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -586,8 +586,11 @@
         notes: [],
         gamification: { points: 0, level: 1, streak: 0 },
         missions: [
-            { id: 1, title: 'Ghi chép 5 khoản chi tiêu', target: 5, current: 0, icon: 'edit-3', done: false, xp: 50 },
-            { id: 2, title: 'Đổ tiền vào quỹ Đầu tư', target: 1, current: 0, icon: 'trending-up', done: false, xp: 100 }
+            { id: 1, title: 'Thói quen Ghi chép', target: 5, current: 0, icon: 'edit-3', done: false, xp: 50 },
+            { id: 2, title: 'Trả cho mình trước (Đầu tư)', target: 1, current: 0, icon: 'trending-up', done: false, xp: 100 },
+            { id: 3, title: 'Hưởng thụ ý nghĩa', target: 1, current: 0, icon: 'coffee', done: false, xp: 80 },
+            { id: 4, title: 'Trái tim rộng mở (Cho đi)', target: 1, current: 0, icon: 'heart', done: false, xp: 80 },
+            { id: 5, title: 'Gia tài đầu tiên (Tiết kiệm)', target: 5000000, current: 0, icon: 'piggy-bank', done: false, xp: 150 }
         ]
     };
 
@@ -635,13 +638,20 @@
             // Migrate dữ liệu cũ sang hệ thống Gamification mới
             if (state.streak !== undefined) {
                 state.gamification = { points: state.streak * 10, level: Math.max(1, Math.floor((state.streak * 10) / 100) + 1), streak: state.streak };
-                state.missions = [
-                    { id: 1, title: 'Ghi chép 5 khoản chi', target: 5, current: 0, icon: 'edit-3', done: false, xp: 50 },
-                    { id: 2, title: 'Đổ tiền vào quỹ Đầu tư', target: 1, current: 0, icon: 'trending-up', done: false, xp: 100 }
-                ];
                 delete state.streak;
             }
             if (!state.notes) state.notes = [];
+            // Cập nhật lại danh sách nhiệm vụ mới nếu đang dùng bản cũ
+            if (!state.missions || state.missions.length < 5) {
+                const cm = state.missions || [];
+                state.missions = [
+                    { id: 1, title: 'Thói quen Ghi chép', target: 5, current: cm.find(x=>x.id===1)?.current || 0, icon: 'edit-3', done: cm.find(x=>x.id===1)?.done || false, xp: 50 },
+                    { id: 2, title: 'Trả cho mình trước (Đầu tư)', target: 1, current: cm.find(x=>x.id===2)?.current || 0, icon: 'trending-up', done: cm.find(x=>x.id===2)?.done || false, xp: 100 },
+                    { id: 3, title: 'Hưởng thụ ý nghĩa', target: 1, current: cm.find(x=>x.id===3)?.current || 0, icon: 'coffee', done: cm.find(x=>x.id===3)?.done || false, xp: 80 },
+                    { id: 4, title: 'Trái tim rộng mở (Cho đi)', target: 1, current: cm.find(x=>x.id===4)?.current || 0, icon: 'heart', done: cm.find(x=>x.id===4)?.done || false, xp: 80 },
+                    { id: 5, title: 'Gia tài đầu tiên (Tiết kiệm)', target: 5000000, current: state.jars?.ltss?.balance || 0, icon: 'piggy-bank', done: (state.jars?.ltss?.balance || 0) >= 5000000, xp: 150 }
+                ];
+            }
         }
         qs('#current-month').innerText = `${state.month}/${state.year}`;
         updateTotalBudget();
@@ -649,6 +659,16 @@
     }
     
     async function saveState() {
+        // Tracking Tiến độ Nhiệm vụ số 5 (Tiết kiệm 5 triệu)
+        if (state.missions[4] && !state.missions[4].done) {
+            state.missions[4].current = Math.max(0, state.jars.ltss.balance);
+            if (state.missions[4].current >= state.missions[4].target) {
+                state.missions[4].current = state.missions[4].target;
+                state.missions[4].done = true;
+                state.gamification.points += state.missions[4].xp;
+            }
+        }
+
         localStorage.setItem('6jars_data', JSON.stringify(state));
         updateTotalBudget();
         
@@ -952,13 +972,27 @@
             state.gamification.points += 5; // Thưởng: Cộng 5 XP
         }
         
-        // Cập nhật Nhiệm vụ ghi chép
+        // Cập nhật Nhiệm vụ ghi chép (id 1)
         if (state.missions[0] && !state.missions[0].done) {
             state.missions[0].current += 1;
             if (state.missions[0].current >= state.missions[0].target) {
                 state.missions[0].done = true;
                 state.gamification.points += state.missions[0].xp;
             }
+        }
+
+        // Cập nhật Nhiệm vụ Hưởng thụ (id 3)
+        if (jarKey === 'play' && state.missions[2] && !state.missions[2].done) {
+            state.missions[2].current = 1;
+            state.missions[2].done = true;
+            state.gamification.points += state.missions[2].xp;
+        }
+
+        // Cập nhật Nhiệm vụ Cho đi (id 4)
+        if (jarKey === 'give' && state.missions[3] && !state.missions[3].done) {
+            state.missions[3].current = 1;
+            state.missions[3].done = true;
+            state.gamification.points += state.missions[3].xp;
         }
 
         saveState();
@@ -1136,10 +1170,14 @@
                         play: { limit: 0, balance: 0 }, give: { limit: 0, balance: 0 }
                     },
                     transactions: [],
+                    notes: [],
                     gamification: { points: 0, level: 1, streak: 0 },
                     missions: [
-                        { id: 1, title: 'Ghi chép 5 khoản chi tiêu', target: 5, current: 0, icon: 'edit-3', done: false, xp: 50 },
-                        { id: 2, title: 'Đổ tiền vào quỹ Đầu tư', target: 1, current: 0, icon: 'trending-up', done: false, xp: 100 }
+                        { id: 1, title: 'Thói quen Ghi chép', target: 5, current: 0, icon: 'edit-3', done: false, xp: 50 },
+                        { id: 2, title: 'Trả cho mình trước (Đầu tư)', target: 1, current: 0, icon: 'trending-up', done: false, xp: 100 },
+                        { id: 3, title: 'Hưởng thụ ý nghĩa', target: 1, current: 0, icon: 'coffee', done: false, xp: 80 },
+                        { id: 4, title: 'Trái tim rộng mở (Cho đi)', target: 1, current: 0, icon: 'heart', done: false, xp: 80 },
+                        { id: 5, title: 'Gia tài đầu tiên (Tiết kiệm)', target: 5000000, current: 0, icon: 'piggy-bank', done: false, xp: 150 }
                     ]
                 };
                 await saveState(); // Cập nhật rỗng lên LocalStorage & Cloud
@@ -1200,7 +1238,16 @@
         // Render Missions
         let missionsHtml = '';
         state.missions.forEach(m => {
-            const progress = m.done ? 100 : (m.current / m.target) * 100;
+            const progress = m.done ? 100 : Math.min(100, (m.current / m.target) * 100);
+            
+            // Format số lớn cho đẹp (VD: 5M thay vì 5000000)
+            let currentText = m.current;
+            let targetText = m.target;
+            if (m.target >= 1000) {
+                 currentText = (m.current / 1000000).toFixed(1).replace('.0', '') + 'M';
+                 targetText = (m.target / 1000000).toFixed(1).replace('.0', '') + 'M';
+            }
+
             missionsHtml += `
                 <div class="bg-white p-4 rounded-xl border-2 ${m.done ? 'border-emerald-200 bg-emerald-50/30' : 'border-dashed border-indigo-200'}">
                     <div class="flex items-center justify-between mb-2">
@@ -1216,7 +1263,7 @@
                         <div class="w-full bg-gray-200 rounded-full h-1.5 flex-1">
                             <div class="${m.done ? 'bg-emerald-500' : 'bg-indigo-600'} h-1.5 rounded-full transition-all duration-500" style="width: ${progress}%"></div>
                         </div>
-                        <span class="text-[10px] font-medium text-gray-500">${m.current}/${m.target}</span>
+                        <span class="text-[10px] font-medium text-gray-500">${currentText}/${targetText}</span>
                     </div>
                 </div>
             `;
